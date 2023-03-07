@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>반응속도 테스트</title>
+    <style>
+      #screen {
+        width: 300px;
+        height: 200px;
+        text-align: center;
+        user-select: none;
+      }
+      #screen.waiting {
+        background-color: skyblue;
+      }
+      #screen.ready {
+        background-color: orange;
+      }
+      #screen.now {
+        background-color: green;
+      }
+      img {
+        margin-top: 1rem;
+        width: 300px;
+        height: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="screen" class="waiting">클릭해서 시작하세요</div>
+    <div id="result"></div>
+
+    <img src="./스크린샷 2023-03-01 오후 12.58.54.png" />
+    <script>
+      //파란화면 띄운다. 대기
+      //파란화면 클릭 -> 빨간화면으로 전환
+      //랜덤 타이머 작동
+      //초록화면을 띄우고 시간을 재기 시작. 대기
+      //!빨간호면 클릭 -> 파란화면으로 전환하고 성급했다고 안내
+      //!초록화면 클릭 -> 클릭까지 얼마나 걸렸는지 측정하고 표시 -> 파란화면으로 전환한다.
+      const $screen = document.querySelector("#screen");
+      const $result = document.querySelector("#result");
+
+      let startTime; //랜덤 타이머 발동
+      let endTime; //그린화면
+      let timeOut;
+      const records = []; //기록들을 저장해서 평균을 내야하기 때문에.
+      const whatColor = (event) => {
+        if (event.target.classList.contains("waiting")) {
+          //파란색
+          $screen.classList.remove("waiting");
+          $screen.classList.add("ready");
+          $screen.textContent = "초록색화면이 되면 클릭하세요!";
+          //랜덤 타이머
+          timeOut = setTimeout(() => {
+            $screen.classList.remove("ready");
+            $screen.classList.add("now");
+            $screen.textContent = "지금 클릭하세요!";
+            //첫시간
+            startTime = new Date();
+          }, Math.floor(Math.random() * 1000) + 2000); //2초~3초 사이. 0~1000사이의 랜덤숫자 + 2000이니까.
+        } else if (event.target.classList.contains("ready")) {
+          //오렌지
+          //오렌지ready 클릭 -> 성급했어/waiting
+          clearTimeout(timeOut);
+          $screen.classList.add("waiting");
+          $screen.classList.remove("ready");
+          $screen.textContent = "너무 성급하군요~~";
+
+          //대기
+        } else if (event.target.classList.contains("now")) {
+          //초록색
+          //평균
+          endTime = new Date();
+          const result = endTime - startTime;
+          records.push(result);
+          const average = records.reduce((a, c) => a + c) / records.length;
+          $result.textContent = `현재  + ${result} ms, "평균 " + ${average} ms`;
+          //끝시간
+          console.log(result);
+          $screen.classList.remove("now");
+          $screen.classList.add("waiting");
+          $screen.textContent = "클릭해서 시작하세요";
+        }
+      };
+
+      $screen.addEventListener("click", whatColor);
+    </script>
+  </body>
+</html>
