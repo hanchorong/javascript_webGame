@@ -8,7 +8,11 @@
   </head>
   <body>
     <form id="start-screen">
-      <input id="name-input" placeholder="주인공 이름을 입력하세요!" />
+      <input
+        id="name-input"
+        placeholder="주인공 이름을 입력하세요!"
+        autofocus
+      />
       <button id="start">시작</button>
     </form>
     <div id="screen">
@@ -23,14 +27,14 @@
         <div id="menu-1">1.모험</div>
         <div id="menu-2">2.휴식</div>
         <div id="menu-3">3.종료</div>
-        <input id="menu-input" />
+        <input id="menu-input" autofocus />
         <button id="menu-button">입력</button>
       </form>
       <form id="battle-menu" style="display: none">
         <div id="battle-1">1.공격</div>
         <div id="battle-2">2.회복</div>
         <div id="battle-3">3.도망</div>
-        <input id="battle-input" />
+        <input id="battle-input" autofocus />
         <button id="battle-button">입력</button>
       </form>
       <div id="message"></div>
@@ -62,6 +66,14 @@
         maxHp: 100,
         xp: 0,
         att: 10,
+        attack(monster) {
+          monster.hp -= this.att;
+          this.hp -= monster.att;
+        },
+        heal(monster) {
+          this.hp += 20;
+          this.hp -= monster.att;
+        },
       };
 
       let monster = null;
@@ -90,23 +102,29 @@
       $gameMenu.addEventListener("submit", (event) => {
         event.preventDefault();
         const menuNum = event.target["menu-input"].value;
-
-        if (menuNum === "3") {
-          alert("종료하시겠습니까?");
-        } else if (menuNum === "2") {
-          // 주인공 체력 모두 회복
-        } else if (menuNum === "1") {
+        if (menuNum === "1") {
           //모험
           $gameMenu.style.display = "none";
-          $battleMenu.style.display = "block";
-
+          $battleMenu.style.display = "block"; //베틀 메뉴보여짐
           //몬스터 젠
-          monster = JSON.Parse(
-            JSON.stringify([Math.floor(Math.random() * monsterList.length)])
+          monster = JSON.parse(
+            JSON.stringify(
+              monsterList[Math.floor(Math.random() * monsterList.length)]
+            )
           ); //깊은복사
           $monsterName.textContent = monster.name;
           $monsterHp.textContent = `HP: ${monster.hp}`;
           $monsterAtt.textContent = `ATT: ${monster.att}`;
+          console.log(monster);
+        } else if (menuNum === "2") {
+          //회복
+          // const recovery = hero.maxHp - hero.hp;
+          // hero.hp += recovery;
+          // $message.textContent = `히어로의 체력을 ${recovery} 만큼 회복했습니다.`;
+          // console.log(recovery, hero);
+        } else if (menuNum === "3") {
+          //종료
+          alert("종료하시겠습니까?");
         }
       });
 
@@ -115,11 +133,20 @@
         event.preventDefault();
         const menuNum = event.target["battle-input"].value;
         if (menuNum === "1") {
-          //내 공격력 만큼 공격
+          //1. 공격 :내 공격력 만큼 공격
+          hero.attack(monster);
+          monster.attack(hero);
+          //히어로
+          $heroHp.textContent = `HP: ${hero.hp} / ${hero.maxHp}`;
+          $heroAtt.textContent = `ATT: ${hero.att}`;
+          //몬스터
+          $monsterHp.textContent = `HP: ${monster.hp} / `;
+          $monsterAtt.textContent = `ATT: ${monster.att}`;
+          $message.textContent = `${hero.att}만큼 공격하고 ${monster.att}만큼 데미지를 입었다.`;
         } else if (menuNum === "2") {
-          //20 회복
+          //2. 회복: 20 회복
         } else if (menuNum === "3") {
-          //도망
+          //3.도망
           $battleMenu.style.display = "none";
           $gameMenu.style.display = "block";
         }
