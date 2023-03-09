@@ -116,7 +116,10 @@
               `몬스터와 마주쳤다. ${this.monster.name}인 것 같다!`
             );
           } else if (input === "2") {
-            //휴식
+            //휴식: 체력 만피
+            this.showMessage(`체력을 ${this.hero.maxHp}로 회복합니다.`);
+            this.hero.hp = this.hero.maxHp;
+            this.updateHeroStat();
           } else if (input === "3") {
             //종료
             this.quit();
@@ -163,6 +166,10 @@
             this.updateHeroStat();
           } else if (input === "3") {
             //도망
+            this.changeScreen("game");
+            this.showMessage("도망왔어요");
+            this.monster = null;
+            this.updateMonsterStat();
           }
         };
         updateHeroStat() {
@@ -230,6 +237,10 @@
         heal(monster) {
           this.hp += 20;
           this.hp -= monster.att;
+          if (this.hp > this.maxHp) {
+            this.hp = this.maxHp;
+            alert("더이상 체력을 회복할 수 없습니다.");
+          }
         }
         getXp(xp) {
           this.xp += xp;

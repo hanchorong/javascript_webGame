@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      // let human;
+      class Human {
+        constructor(name, age) {
+          this.name = name;
+          this.age = age;
+        }
+        sayName(name) {
+          console.log(this.name);
+        }
+        sayAge(age) {
+          console.log(this.age);
+        }
+      }
+      class Programer extends Human {
+        constructor(name, age, langues) {
+          super(name, age);
+          this.langues = langues;
+        }
+        writeCode() {
+          console.log(this.langues.join() + "으로 코딩해요");
+        }
+      }
+      const programer = new Programer("han", 33, ["html", "css", "js"]);
+      programer.writeCode();
+      programer.sayAge();
+    </script>
+  </body>
+</html>
