@@ -54,13 +54,13 @@
       const total = 12;
       const colors = ["red", "orange", "yellow", "green", "white", "pink"];
       let colorCopy = colors.concat(colors);
-      //["red", "orange", "yellow", "green", "white", "pink","red", "orange", "yellow", "green", "white", "pink"]
       let shuffled = [];
       let clicked = [];
+      let completed = [];
+      let clickable = false;
 
       function shuffle() {
         for (let i = 0; colorCopy.length > 0; i += 1) {
-          //0~11까지의 랜덤수
           const randomIndex = Math.floor(Math.random() * colorCopy.length);
           //shuffled = shuffled.복사(12colorArr.자르기(0~11랜덤수, 1개));
           shuffled = shuffled.concat(colorCopy.splice(randomIndex, 1));
@@ -87,9 +87,13 @@
 
       //클릭한 카드 배열에 넣기
       function onClickCard() {
+        if (!clickable || completed.includes(this) || clicked[0] === this) {
+          return;
+        }
         this.classList.toggle("flipped");
-        clicked.push(this);
+        clicked.push(this); //clicked배열에 this = card를 넣어줌. 여기서 this는 addEventListener를 호출한 card.
         if (clicked.length !== 2) {
+          //두개 선택 안했을떄
           return;
         }
         const firstBackColor =
@@ -97,13 +101,33 @@
         const secondBackColor =
           clicked[1].querySelector(".card-back").style.backgroundColor;
         if (firstBackColor === secondBackColor) {
-          console.log("같아");
-          console.log(firstBackColor, secondBackColor);
-          //------------------여기까지-------------
+          //두 카드의 색이 같을때, completed 배열에 넣어줌.
+          // completed.push(clicked[0])
+          // completed.push(clicked[1])
+          completed = completed.concat(clicked);
+          clicked = []; //*배열 초기화
+          console.log(completed);
+          if (completed.length !== total) {
+            return;
+          }
+          setTimeout(() => {
+            alert("축하합니다.");
+            resetGame();
+          }, 500);
+          return;
         }
+        //카드색 다를떄
+        clickable = false;
+        setTimeout(() => {
+          clicked[0].classList.remove("flipped");
+          clicked[1].classList.remove("flipped");
+          clicked = []; //*배열 초기화
+          clickable = true;
+        }, 500);
       }
 
       function startGame() {
+        clickable = false;
         shuffle(); //카드 섞는다.
         for (let i = 0; i < total; i += 1) {
           //섞인대로 만들어준다.
@@ -115,16 +139,24 @@
           setTimeout(() => {
             //카드 시간차 두고 보여주기
             $wrapper.children[i].classList.add("flipped");
-            console.log($wrapper.children[i]);
           }, 1000 + 100 * i);
 
           setTimeout(() => {
             //카드 감추기
             $wrapper.children[i].classList.remove("flipped");
+            clickable = true;
           }, 3000);
         }
       }
       startGame();
+
+      function resetGame() {
+        $wrapper.innerHTML = "";
+        colorCopy = colors.concat(colors);
+        shuffled = [];
+        completed = [];
+        startGame();
+      }
     </script>
   </body>
 </html>
