@@ -53,25 +53,27 @@
 
       const total = 12;
       let colors = ["red", "orange", "yellow", "green", "white", "pink"]; //*2
-      const colorCopy = colors.concat(colors); //concat은 배열 자체를 변경시키지 x
+      let colorCopy = colors.concat(colors); //concat은 배열 자체를 변경시키지 x
       //colorCopy=["red", "orange", "yellow", "green", "white", "pink","", "orange", "yellow", "green", "white", "pink"]
       let shuffleArr = [];
       let clickArr = [];
       let completed = [];
+      let clickAble = false;
 
       function shuffle() {
         for (let i = 0; 0 < colorCopy.length; i++) {
           const random = Math.floor(Math.random() * colorCopy.length); //colorCopy길이 0~11중 랜덤 수 12번 뽑아짐.
           shuffleArr = shuffleArr.concat(colorCopy.splice(random, 1));
-          // console.log(shuffleArr);
-          createCard(i);
+          console.log(shuffleArr);
         }
       }
       function onClickCard() {
-        // console.log(this);
+        if (!clickAble || completed.includes(this) || clickArr[0] === this) {
+          return;
+        }
         this.classList.add("flipped");
         clickArr.push(this);
-
+        //두 카드 선택하지 않으면
         if (clickArr.length !== 2) {
           return;
         }
@@ -79,19 +81,32 @@
           clickArr[0].querySelector(".card-back").style.backgroundColor;
         const secondClick =
           clickArr[1].querySelector(".card-back").style.backgroundColor;
-        console.log(firstClick);
-        console.log(secondClick);
-        // console.log(clickArr);
+        //두 카드 같으면
         if (firstClick === secondClick) {
           completed = completed.concat(clickArr);
           clickArr = [];
-          // console.log(clickArr, completed);
+          if (completed.length !== total) {
+            return;
+          }
+          clickAble = false;
+          setTimeout(() => {
+            alert("축하합니다. 성공하셨네요!");
+            restart();
+          }, 700);
+          console.log(clickArr, completed);
+          return;
         }
+        clickAble = false;
+        setTimeout(() => {
+          clickArr[0].classList.remove("flipped");
+          clickArr[1].classList.remove("flipped");
+          clickArr = [];
+          clickAble = true;
+        }, 600);
       }
       //12장의 카드 섞기
       //카드 만들고 색상 넣기
       function createCard(i) {
-        // for (let i = 0; i < colorCopy.length; i++) {
         const card = document.createElement("div");
         const cardInner = document.createElement("div");
         const cardFront = document.createElement("div");
@@ -106,22 +121,35 @@
         cardInner.appendChild(cardBack);
         cardBack.classList.add("card-back");
         cardBack.style.backgroundColor = shuffleArr[i];
-        console.log("shuffleArr[i]", shuffleArr);
-        // }
         card.addEventListener("click", onClickCard);
         return card;
       }
 
       function startGame() {
+        clickAble = false;
         shuffle();
-        //--------------------- 여기까지
         for (let i = 0; i < total; i++) {
+          const card = createCard(i); //i 로 반복하는 횟수 넘겨주고 createCard의 return card 받음.
           //카드보여주기
-          setTimeout(() => {}, 1000);
+          setTimeout(() => {
+            clickAble = false;
+            $wrapper.children[i].classList.add("flipped");
+          }, 80 * i + 1000);
           //카드감추기
+          setTimeout(() => {
+            $wrapper.children[i].classList.remove("flipped");
+            clickAble = true;
+          }, 3000);
         }
       }
       startGame();
+      function restart() {
+        $wrapper.innerHTML = "";
+        colorCopy = colors.concat(colors);
+        shuffleArr = [];
+        completed = [];
+        startGame();
+      }
     </script>
   </body>
 </html>
