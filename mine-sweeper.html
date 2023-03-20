@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>지뢰찾기_강의</title>
+    <style>
+      table {
+        border-collapse: collapse;
+      }
+      td {
+        border: 1px solid #bbb;
+        text-align: center;
+        line-height: 20px;
+        width: 20px;
+        height: 20px;
+        background: #888;
+      }
+      td.opened {
+        background: #fff;
+      }
+      td.flag {
+        background-color: red;
+      }
+      td.question {
+        background-color: orange;
+      }
+    </style>
+  </head>
+  <body>
+    <table id="table">
+      <tbody></tbody>
+    </table>
+    <div id="result"></div>
+    <script>
+      const $tbody = document.querySelector("#table tbody");
+      const $result = document.querySelector("#result");
+
+      // let boardArr = [];
+      // let Bomb = "x";
+      const row = 10;
+      const cell = 10;
+      const mine = 10;
+      const CODE = {
+        NORMAL: -1,
+        QUESTION: -2,
+        FLAG: -3,
+        QUESTION_MINE: -4,
+        FLAG_MINE: -5,
+        MINE: -6,
+        OPENED: 0,
+      };
+      let data;
+
+      function plantMine() {}
+      function drawTable() {}
+      drawTable();
+      // function createBoard() {
+      //   for (let i = 0; i < 10; i++) {
+      //     const tr = document.createElement("tr");
+      //     const cell = [];
+      //     for (let j = 0; j < 10; j++) {
+      //       const td = document.createElement("td");
+      //       tr.append(td);
+      //       cell.push("");
+      //     }
+      //     $tbody.appendChild(tr);
+      //     boardArr.push(cell);
+      //   }
+      // }
+      // createBoard();
+
+      // function randomBomb() {
+      //   const boardFlat = boardArr.flat();
+      //   for (let i = 0; i < 10; i++) {
+      //     const random = Math.floor(Math.random() * boardFlat.length);
+      //     const tet = boardFlat.splice(random, 1);
+      //     console.log(random, tet);
+      //     tr.textContent = "x";
+      //   }
+      // }
+      // randomBomb();
+      // console.log(boardArr);
+    </script>
+  </body>
+</html>
