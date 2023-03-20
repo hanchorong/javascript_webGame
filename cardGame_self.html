@@ -51,22 +51,39 @@
     <script>
       const $wrapper = document.querySelector("#wrapper");
 
-      const total = 12;
-      let colors = ["red", "orange", "yellow", "green", "white", "pink"]; //*2
-      let colorCopy = colors.concat(colors); //concat은 배열 자체를 변경시키지 x
-      //colorCopy=["red", "orange", "yellow", "green", "white", "pink","", "orange", "yellow", "green", "white", "pink"]
+      // const total = 12;
+      const total = parseInt(
+        prompt("카드 갯수를 입력해주세요.(짝수 20장 이하)")
+      );
+      let colors = [
+        "red",
+        "orange",
+        "yellow",
+        "green",
+        "white",
+        "pink",
+        "cyan",
+        "violet",
+        "gray",
+        "black",
+      ]; //
+      // let cards = total / 2;
+      let slice = colors.slice(0, total / 2); //배열의 특정 범위 복사하여 그 배열 리턴. 시작, 끝 / splice 특정 위치 범위 삭제 하거나 기존배열 값 대체
+      let colorCopy = slice.concat(slice); //concat은 배열 자체를 변경시키지 x
       let shuffleArr = [];
       let clickArr = [];
       let completed = [];
       let clickAble = false;
+      let startTime;
 
       function shuffle() {
         for (let i = 0; 0 < colorCopy.length; i++) {
           const random = Math.floor(Math.random() * colorCopy.length); //colorCopy길이 0~11중 랜덤 수 12번 뽑아짐.
           shuffleArr = shuffleArr.concat(colorCopy.splice(random, 1));
-          console.log(shuffleArr);
+          // console.log(shuffleArr);
         }
       }
+
       function onClickCard() {
         if (!clickAble || completed.includes(this) || clickArr[0] === this) {
           return;
@@ -89,8 +106,9 @@
             return;
           }
           clickAble = false;
+          const endTime = new Date();
           setTimeout(() => {
-            alert("축하합니다. 성공하셨네요!");
+            alert(`축하합니다. 성공하셨네요!${(endTime - startTime) / 1000}초`);
             restart();
           }, 700);
           console.log(clickArr, completed);
@@ -137,6 +155,7 @@
           }, 80 * i + 1000);
           //카드감추기
           setTimeout(() => {
+            startTime = new Date();
             $wrapper.children[i].classList.remove("flipped");
             clickAble = true;
           }, 3000);
