@@ -49,7 +49,7 @@
         MINE: -6,
         OPENED: 0,
       };
-      let data;
+      // let data; //이 data의 역할은 무엇인가??
 
       function plantMine() {
         const data = [];
@@ -71,7 +71,7 @@
           .map((arr, i) => {
             return i;
           });
-        console.log(candidate);
+
         //랜덤하게 candidate index 10개 뽑기
         const shuffle = [];
         while (candidate.length > row * cell - mine) {
@@ -98,6 +98,94 @@
         }
         return data;
       }
+      // -1,-1/-1,0/-1,+1/
+      //   -1    0   +1
+      // +1,-1/+1,0/+1,+1/
+
+      // -4,-5,-6.includes(-1) false
+      function countMine(rowIndex, cellIndex) {
+        const mines = [CODE.FLAG_MINE, CODE.QUESTION_MINE, CODE.MINE];
+        let i = 0;
+        mines.includes(data[rowIndex - 1]?.[cellIndex - 1]) && i++; //&& 참이면 i++해
+        mines.includes(data[rowIndex - 1]?.[cellIndex]) && i++;
+        mines.includes(data[rowIndex - 1]?.[cellIndex + 1]) && i++;
+        mines.includes(data[rowIndex][cellIndex - 1]) && i++;
+        mines.includes(data[rowIndex][cellIndex + 1]) && i++;
+        mines.includes(data[rowIndex + 1]?.[cellIndex - 1]) && i++;
+        mines.includes(data[rowIndex + 1]?.[cellIndex]) && i++;
+        mines.includes(data[rowIndex + 1]?.[cellIndex + 1]) && i++;
+
+        return i;
+      }
+
+      //주변 칸 한번에 열기
+      function open(rowIndex, cellIndex) {
+        const target = $tbody.children[rowIndex].children[cellIndex];
+        console.log("target", target);
+        const count = countMine(rowIndex, cellIndex);
+        //----------------------------여기
+      }
+      function onLeftClick(event) {
+        const target = event.target;
+        const rowIndex = target.parentNode.rowIndex;
+        const cellIndex = target.cellIndex;
+        const cellData = data[rowIndex][cellIndex];
+        console.log(cellData);
+        if (cellData === CODE.QUESTION || cellData === CODE.FLAG) {
+          console.log("대기");
+        }
+        if (cellData === CODE.MINE) {
+          target.textContent = "펑!";
+          target.className = "opened";
+          $tbody.removeEventListener("contextmenu", onRightClick);
+          $tbody.removeEventListener("click", onLeftClick);
+        } else if (cellData === CODE.NORMAL) {
+          //주변 칸 개수를 표시
+          count = countMine(rowIndex, cellIndex);
+          target.textContent = count || ""; // count 값 있으면 나타내주고 없으면 ""
+          target.className = "opened";
+          data[rowIndex][cellIndex] = count;
+          open(rowIndex, cellIndex);
+        }
+      }
+      function onRightClick(event) {
+        event.preventDefault(); //우클릭 메뉴 뜨는걸 막아줌.
+        const target = event.target;
+        const rowIndex = target.parentNode.rowIndex;
+        const cellIndex = target.cellIndex;
+        const cellData = data[rowIndex][cellIndex];
+        if (cellData === CODE.MINE) {
+          //지뢰면 물음표지뢰로
+          data[rowIndex][cellIndex] = CODE.QUESTION_MINE;
+          target.textContent = "?";
+          target.className = "question";
+        } else if (cellData === CODE.QUESTION_MINE) {
+          //물음표지뢰면면 깃발지뢰로
+          data[rowIndex][cellIndex] = CODE.FLAG_MINE;
+          target.textContent = "!";
+          target.className = "flag";
+        } else if (cellData === CODE.FLAG_MINE) {
+          //깃발지뢰면 지뢰로
+          data[rowIndex][cellIndex] = CODE.MINE;
+          target.textContent = "";
+          target.className = "";
+        } else if (cellData === CODE.NORMAL) {
+          //닫힌칸이면 물음표로
+          data[rowIndex][cellIndex] = CODE.QUESTION;
+          target.textContent = "?";
+          target.className = "question";
+        } else if (cellData === CODE.QUESTION) {
+          //물음표면 깃발로
+          data[rowIndex][cellIndex] = CODE.FLAG;
+          target.textContent = "!";
+          target.className = "flag";
+        } else if (cellData === CODE.FLAG) {
+          //깃발이면 닫힌칸으로
+          data[rowIndex][cellIndex] = CODE.NORMAL;
+          target.textContent = "";
+          target.className = "";
+        }
+      }
       function drawTable() {
         data = plantMine();
         data.forEach((row) => {
@@ -110,6 +198,8 @@
             $tr.append($td);
           });
           $tbody.append($tr);
+          $tbody.addEventListener("contextmenu", onRightClick);
+          $tbody.addEventListener("click", onLeftClick);
         });
       }
       drawTable();
