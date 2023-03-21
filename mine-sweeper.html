@@ -49,7 +49,7 @@
         MINE: -6,
         OPENED: 0,
       };
-      // let data; //이 data의 역할은 무엇인가??
+      let data; //이 data의 역할은 무엇인가??
 
       function plantMine() {
         const data = [];
@@ -117,14 +117,36 @@
 
         return i;
       }
-
-      //주변 칸 한번에 열기
+      //클릭한 칸 열어서 테이블에 count찍히게 하기
       function open(rowIndex, cellIndex) {
         const target = $tbody.children[rowIndex].children[cellIndex];
         console.log("target", target);
         const count = countMine(rowIndex, cellIndex);
-        //----------------------------여기
+        target.textContent = count || "";
+        target.className = "opened";
+        data[rowIndex][cellIndex] = count;
+
+        return count;
       }
+      function isNormal(cell) {
+        return cell === CODE.NORMAL;
+      }
+      //주변 칸 한번에 열기
+      function openAround(rI, cI) {
+        const count = open(rI, cI); // 클릭한 칸
+        if (count === 0) {
+          isNormal(data[rI - 1]?.[cI - 1]) && openAround(rI - 1, cI - 1);
+          isNormal(data[rI - 1]?.[cI]) && openAround(rI - 1, cI);
+          isNormal(data[rI - 1]?.[cI + 1]) && openAround(rI - 1, cI + 1);
+          isNormal(data[rI]?.[cI - 1]) && openAround(rI, cI - 1);
+          isNormal(data[rI]?.[cI + 1]) && openAround(rI, cI + 1);
+          isNormal(data[rI + 1]?.[cI - 1]) && openAround(rI + 1, cI - 1);
+          isNormal(data[rI + 1]?.[cI]) && openAround(rI + 1, cI);
+          isNormal(data[rI + 1]?.[cI + 1]) && openAround(rI + 1, cI + 1);
+        }
+        // console.log(count);
+      }
+      //마우스 왼쪽 클릭
       function onLeftClick(event) {
         const target = event.target;
         const rowIndex = target.parentNode.rowIndex;
@@ -140,14 +162,11 @@
           $tbody.removeEventListener("contextmenu", onRightClick);
           $tbody.removeEventListener("click", onLeftClick);
         } else if (cellData === CODE.NORMAL) {
-          //주변 칸 개수를 표시
-          count = countMine(rowIndex, cellIndex);
-          target.textContent = count || ""; // count 값 있으면 나타내주고 없으면 ""
-          target.className = "opened";
-          data[rowIndex][cellIndex] = count;
-          open(rowIndex, cellIndex);
+          //빈칸 : 주변 칸 개수를 표시
+          openAround(rowIndex, cellIndex);
         }
       }
+      //마우스 오른쪽 클릭
       function onRightClick(event) {
         event.preventDefault(); //우클릭 메뉴 뜨는걸 막아줌.
         const target = event.target;
