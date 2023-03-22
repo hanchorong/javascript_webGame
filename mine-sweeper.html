@@ -29,17 +29,26 @@
     </style>
   </head>
   <body>
+    <form id="form">
+      <input id="row" placeholder="줄" size="5" />
+      <input id="cell" placeholder="칸" size="5" />
+      <input id="mine" placeholder="지뢰" size="5" />
+      <button>생성</button>
+    </form>
+    <div id="timer">0초</div>
     <table id="table">
       <tbody></tbody>
     </table>
     <div id="result"></div>
     <script>
+      const $timer = document.querySelector("#timer");
       const $tbody = document.querySelector("#table tbody");
       const $result = document.querySelector("#result");
+      const $form = document.querySelector("#form");
 
-      const row = 10;
-      const cell = 10;
-      const mine = 10;
+      let row;
+      let cell;
+      let mine;
       const CODE = {
         NORMAL: -1,
         QUESTION: -2,
@@ -50,6 +59,26 @@
         OPENED: 0,
       };
       let data; //이 data의 역할은 무엇인가??
+      let openCount;
+      let startTime;
+      let interval;
+      const dev = false;
+
+      function onSubmit(event) {
+        event.preventDefault();
+        row = parseInt(event.target.row.value);
+        cell = parseInt(event.target.cell.value);
+        mine = parseInt(event.target.mine.value);
+        $tbody.innerHTML = "";
+        drawTable();
+        openCount = 0;
+        startTime = new Date();
+        interval = setInterval(() => {
+          const time = Math.floor((new Date() - startTime) / 1000);
+          $timer.textContent = `${time}초`;
+        }, 1000);
+      }
+      $form.addEventListener("submit", onSubmit);
 
       function plantMine() {
         const data = [];
@@ -103,6 +132,7 @@
       // +1,-1/+1,0/+1,+1/
 
       // -4,-5,-6.includes(-1) false
+      //내 주변 8칸 중에 폭탄이 있으면 i++
       function countMine(rowIndex, cellIndex) {
         const mines = [CODE.FLAG_MINE, CODE.QUESTION_MINE, CODE.MINE];
         let i = 0;
@@ -119,48 +149,85 @@
       }
       //클릭한 칸 열어서 테이블에 count찍히게 하기
       function open(rowIndex, cellIndex) {
-        const target = $tbody.children[rowIndex].children[cellIndex];
-        console.log("target", target);
+        if (data[rowIndex]?.[cellIndex] >= CODE.OPENED) return; //클릭한 값이 0보다 크거나 같으면 종료 ==> 이미 열린칸은 종료
+        const target = $tbody.children[rowIndex]?.children[cellIndex];
+        if (!target) {
+          return;
+        }
+        console.log(target);
         const count = countMine(rowIndex, cellIndex);
         target.textContent = count || "";
         target.className = "opened";
-        data[rowIndex][cellIndex] = count;
-
+        data[rowIndex][cellIndex] = count; //데이터arr에도 갯수 넣어주기.
+        openCount++;
+        console.log(openCount);
+        if (openCount === row * cell - mine) {
+          const time = (new Date() - startTime) / 1000;
+          clearInterval(interval);
+          $tbody.removeEventListener("contextmenu", onRightClick);
+          $tbody.removeEventListener("click", onLeftClick);
+          setTimeout(() => {
+            //화면이 바뀔수 있는 시간주기위해
+            alert(`승리 ${time}초 걸렸습니다.`);
+          }, 500);
+        }
         return count;
       }
-      function isNormal(cell) {
-        return cell === CODE.NORMAL;
-      }
+
       //주변 칸 한번에 열기
       function openAround(rI, cI) {
-        const count = open(rI, cI); // 클릭한 칸
-        if (count === 0) {
-          isNormal(data[rI - 1]?.[cI - 1]) && openAround(rI - 1, cI - 1);
-          isNormal(data[rI - 1]?.[cI]) && openAround(rI - 1, cI);
-          isNormal(data[rI - 1]?.[cI + 1]) && openAround(rI - 1, cI + 1);
-          isNormal(data[rI]?.[cI - 1]) && openAround(rI, cI - 1);
-          isNormal(data[rI]?.[cI + 1]) && openAround(rI, cI + 1);
-          isNormal(data[rI + 1]?.[cI - 1]) && openAround(rI + 1, cI - 1);
-          isNormal(data[rI + 1]?.[cI]) && openAround(rI + 1, cI);
-          isNormal(data[rI + 1]?.[cI + 1]) && openAround(rI + 1, cI + 1);
-        }
-        // console.log(count);
+        setTimeout(() => {
+          const count = open(rI, cI); // 클릭한 칸
+          if (count === 0) {
+            openAround(rI - 1, cI - 1);
+            openAround(rI - 1, cI);
+            openAround(rI - 1, cI + 1);
+            openAround(rI, cI - 1);
+            openAround(rI, cI + 1);
+            openAround(rI + 1, cI - 1);
+            openAround(rI + 1, cI);
+            openAround(rI + 1, cI + 1);
+          }
+        }, 0);
       }
+      //selfCheck 첫클릭 지뢰 X
+      //방법 1: 클릭 후 지뢰 깔기
+      //방법 2: 클릭한곳이 지뢰라면 지뢰 옮기기 <이걸로
+      let normalCellFound = false;
+      let searched;
+      let firstClick = true;
+      function transferMine(rI, cI) {
+        //이미 빈칸을 찾았으면 종료
+        //이미 찾은 칸이면 종료
+        //빈칸인 경우
+      }
+
       //마우스 왼쪽 클릭
       function onLeftClick(event) {
         const target = event.target;
         const rowIndex = target.parentNode.rowIndex;
         const cellIndex = target.cellIndex;
         const cellData = data[rowIndex][cellIndex];
-        console.log(cellData);
+        if (firstClick) {
+          firstClick = false;
+          if (cellData === CODE.MINE) {
+            transferMine(rowIndex, cellIndex);
+            data[rowIndex][cellIndex] = CODE.NORMAL; //지금 클릭한 arr데이터를 0으로
+            cellData = CODE.NORMAL; //테이블도 폭탄에서 빈칸으로
+            //------------------------여기까ㅈ비
+          }
+        }
         if (cellData === CODE.QUESTION || cellData === CODE.FLAG) {
+          // ? or !
           console.log("대기");
         }
         if (cellData === CODE.MINE) {
+          //폭탄
           target.textContent = "펑!";
           target.className = "opened";
           $tbody.removeEventListener("contextmenu", onRightClick);
           $tbody.removeEventListener("click", onLeftClick);
+          clearInterval(interval);
         } else if (cellData === CODE.NORMAL) {
           //빈칸 : 주변 칸 개수를 표시
           openAround(rowIndex, cellIndex);
@@ -186,7 +253,7 @@
         } else if (cellData === CODE.FLAG_MINE) {
           //깃발지뢰면 지뢰로
           data[rowIndex][cellIndex] = CODE.MINE;
-          target.textContent = "";
+          // target.textContent = "X";//개발 편의를 위해
           target.className = "";
         } else if (cellData === CODE.NORMAL) {
           //닫힌칸이면 물음표로
@@ -212,7 +279,7 @@
           row.forEach((cell) => {
             const $td = document.createElement("td");
             if (cell === CODE.MINE) {
-              $td.textContent = "X";
+              $td.textContent = "X"; //개발 편의를 위해
             }
             $tr.append($td);
           });
@@ -221,7 +288,6 @@
           $tbody.addEventListener("click", onLeftClick);
         });
       }
-      drawTable();
     </script>
   </body>
 </html>
