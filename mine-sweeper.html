@@ -30,7 +30,7 @@
   </head>
   <body>
     <form id="form">
-      <input id="row" placeholder="줄" size="5" />
+      <input id="row" placeholder="줄" size="5" autofocus />
       <input id="cell" placeholder="칸" size="5" />
       <input id="mine" placeholder="지뢰" size="5" />
       <button>생성</button>
@@ -149,18 +149,18 @@
       }
       //클릭한 칸 열어서 테이블에 count찍히게 하기
       function open(rowIndex, cellIndex) {
-        if (data[rowIndex]?.[cellIndex] >= CODE.OPENED) return; //클릭한 값이 0보다 크거나 같으면 종료 ==> 이미 열린칸은 종료
+        if (data[rowIndex]?.[cellIndex] >= CODE.OPENED) return; //클릭한 값이 0보다 크거나 같으면 종료 ==> 이미 열린칸은 종료
         const target = $tbody.children[rowIndex]?.children[cellIndex];
         if (!target) {
           return;
         }
-        console.log(target);
+        // console.log(target);
         const count = countMine(rowIndex, cellIndex);
         target.textContent = count || "";
         target.className = "opened";
         data[rowIndex][cellIndex] = count; //데이터arr에도 갯수 넣어주기.
         openCount++;
-        console.log(openCount);
+        // console.log(openCount);
         if (openCount === row * cell - mine) {
           const time = (new Date() - startTime) / 1000;
           clearInterval(interval);
@@ -197,9 +197,26 @@
       let searched;
       let firstClick = true;
       function transferMine(rI, cI) {
-        //이미 빈칸을 찾았으면 종료
-        //이미 찾은 칸이면 종료
-        //빈칸인 경우
+        if (normalCellFound) return; //이미 빈칸을 찾았으면 종료
+        if (rI < 0 || rI >= row || cI < 0 || cI >= cell) return;
+        if (searched[rI][cI]) return; //이미 찾은 칸이면 종료
+
+        if (data[rI][cI] === CODE.NORMAL) {
+          //빈칸인 경우
+          normalCellFound = true;
+          data[rI][cI] = CODE.MINE;
+        } else {
+          //지뢰칸인 경우 8방향 탐색
+          searched[rI][cI] = true; //이미 찾은칸 종료해주기 위해
+          transferMine(rI - 1, cI - 1);
+          transferMine(rI - 1, cI);
+          transferMine(rI - 1, cI + 1);
+          transferMine(rI, cI - 1);
+          transferMine(rI, cI + 1);
+          transferMine(rI + 1, cI - 1);
+          transferMine(rI + 1, cI);
+          transferMine(rI + 1, cI + 1);
+        }
       }
 
       //마우스 왼쪽 클릭
@@ -207,14 +224,21 @@
         const target = event.target;
         const rowIndex = target.parentNode.rowIndex;
         const cellIndex = target.cellIndex;
-        const cellData = data[rowIndex][cellIndex];
+        let cellData = data[rowIndex][cellIndex];
+        //첫번째 클릭
         if (firstClick) {
-          firstClick = false;
+          firstClick = false; //첫번째 클릭 후 false로바꿔줌
+          searched = Array(row)
+            .fill()
+            .map(() => []); //줄 수 만큼 배열이 만들어짐
+          console.log(searched);
           if (cellData === CODE.MINE) {
-            transferMine(rowIndex, cellIndex);
+            //내가 클릭한 테이블의 위치가 데이터 상에서 폭탄이냐?
+            //폭탄
+            console.log(rowIndex, cellIndex);
+            transferMine(rowIndex, cellIndex); //위치를 바꿔주는 동작 (폭탄의 위치 담김)
             data[rowIndex][cellIndex] = CODE.NORMAL; //지금 클릭한 arr데이터를 0으로
             cellData = CODE.NORMAL; //테이블도 폭탄에서 빈칸으로
-            //------------------------여기까ㅈ비
           }
         }
         if (cellData === CODE.QUESTION || cellData === CODE.FLAG) {
