@@ -41,37 +41,40 @@
     </table>
     <div id="result"></div>
     <script>
+      const $form = document.querySelector("#form");
       const $timer = document.querySelector("#timer");
       const $tbody = document.querySelector("#table tbody");
       const $result = document.querySelector("#result");
-      const $form = document.querySelector("#form");
 
       let row;
       let cell;
       let mine;
       const CODE = {
-        NORMAL: -1,
+        NORMAL: -1, //닫힌칸
         QUESTION: -2,
         FLAG: -3,
         QUESTION_MINE: -4,
         FLAG_MINE: -5,
         MINE: -6,
-        OPENED: 0,
+        OPENED: 0, //0이상 모두 열린칸
       };
       let data; //이 data의 역할은 무엇인가??
-      let openCount;
+      let openCount = 0;
       let startTime;
       let interval;
-      const dev = false;
 
       function onSubmit(event) {
         event.preventDefault();
         row = parseInt(event.target.row.value);
         cell = parseInt(event.target.cell.value);
         mine = parseInt(event.target.mine.value);
+        openCount = 0;
+        normalCellFound = false;
+        searched = null;
+        firstClick = true;
+        clearInterval(interval);
         $tbody.innerHTML = "";
         drawTable();
-        openCount = 0;
         startTime = new Date();
         interval = setInterval(() => {
           const time = Math.floor((new Date() - startTime) / 1000);
@@ -109,7 +112,6 @@
             1
           )[0];
           shuffle.push(chosen);
-          // console.log(shuffle);
         }
         // 10 * 10 array data
         for (let i = 0; i < row; i++) {
@@ -198,9 +200,9 @@
       let firstClick = true;
       function transferMine(rI, cI) {
         if (normalCellFound) return; //이미 빈칸을 찾았으면 종료
+        //줄 0이하 || 줄이 입력한 줄수보다 크거나 같을때 || 칸이 0이하 || 칸이 입력한 칸 수보다 크거나 같을때
         if (rI < 0 || rI >= row || cI < 0 || cI >= cell) return;
         if (searched[rI][cI]) return; //이미 찾은 칸이면 종료
-
         if (data[rI][cI] === CODE.NORMAL) {
           //빈칸인 경우
           normalCellFound = true;
